@@ -7,13 +7,17 @@
 //
 
 import UIKit
- import CoreData
+import RealmSwift
+ 
 
 class CategoryViewController: UITableViewController {
+    // initizing access point to realm database
+    let realm = try! Realm()
     
-    var categoryArray = [Category]()
+    var categoryArray: Results<Category>?
+    // change our category array to a collection of results, its an optional(?)
     
-    let context =  (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,16 +27,17 @@ class CategoryViewController: UITableViewController {
 
    // MARK - Tableview Datasource Methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categoryArray.count
+        return categoryArray?.count ?? 1
+        //return the number of categories if there are any and if not return 1
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
-        let category = categoryArray[indexPath.row]
         
-        cell.textLabel?.text = category.name
+        cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories Added Yet"
+        // the cell is going to have a text label if we have categories and if not it will put in a cell "No Categories Added"
         
         return cell
         
@@ -41,37 +46,44 @@ class CategoryViewController: UITableViewController {
     //MARK - Tableview Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "goToItems", sender: self)
+        // this is if we select the category row the segue that will take the user to the TodoListViewControllwe
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let destinationVC = segue.destination as! TodoListViewController
-    
+        // creating a new instance of destinationVC
     if let indexPath = tableView.indexPathForSelectedRow {
-        destinationVC.selectedCategory = categoryArray[indexPath.row]
+        destinationVC.selectedCategory = categoryArray?[indexPath.row]
+        /* We set the destinationVC to the selected category  indexPath.row that was
+        selected which triggers segue which then takes us to the todolistViewController*/
     }
     }
 
     //MARK - Data Manipulation Methods
-    func saveCategories() {
-        
+    func save(category: Category) {
+        //we pass in the new category that we created
         do {
-            try context.save()
+//            try context.save()
+            try realm.write {
+                //realm.write commits changes to realm
+                realm.add(category)
+                //we want to add our new category to realm database
+            }
         } catch {
             print("Error saving category \(error)")
+            // log if there are errors
         }
         tableView.reloadData()
         
     }
     
     func loadCategories() {
-        let request : NSFetchRequest<Category> = Category.fetchRequest()
-        do {
-         categoryArray = try context.fetch(request)
-        } catch {
-            print("Error loading categories \(error)")
-        }
         
+         categoryArray = realm.objects(Category.self)
+        // we set our results container to look inside our realm and fetch all of the objects that belong to the category data type
         tableView.reloadData()
+        // reloads table view with new data, it calls all the "Tableview DataSource Methods again"
+//
     }
     
     
@@ -83,12 +95,17 @@ class CategoryViewController: UITableViewController {
         
         let action = UIAlertAction(title: "Add", style: .default) { (action) in
             
-            let newCategory = Category(context: self.context)
+            
+//            let newCategory = Category(context: self.context)
+            let newCategory = Category()
+            // creating a new category object
             newCategory.name = textField.text!
+            // we give a category a new name based on what the user types in the text field
             
-            self.categoryArray.append(newCategory)
+          //  self.categoryArray.append(newCategory)
             
-            self.saveCategories()
+            self.save(category: newCategory)
+            // calling save method to save the new category to realm database
             
         }
         
