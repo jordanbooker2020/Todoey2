@@ -8,9 +8,10 @@
 
 import UIKit
 import RealmSwift
- 
 
-class CategoryViewController: UITableViewController {
+ 
+// When using delegates it is usually a good idea to use extension
+ class CategoryViewController: SwipeTableViewController {
     // initizing access point to realm database
     let realm = try! Realm()
     
@@ -23,6 +24,8 @@ class CategoryViewController: UITableViewController {
         super.viewDidLoad()
         loadCategories()
         
+        tableView.rowHeight = 80.0
+        
     }
 
    // MARK - Tableview Datasource Methods
@@ -31,13 +34,20 @@ class CategoryViewController: UITableViewController {
         //return the number of categories if there are any and if not return 1
     }
     
+//    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+//        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell") as! SwipeTableViewCell
+//        cell.delegate = self
+//        return cell
+//    }
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! SwipeTableViewCell
         
         
         cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories Added Yet"
         // the cell is going to have a text label if we have categories and if not it will put in a cell "No Categories Added"
+        cell.delegate = self
         
         return cell
         
@@ -120,4 +130,9 @@ class CategoryViewController: UITableViewController {
     }
     
 }
+ 
+ 
+ 
+ 
+ 
  
