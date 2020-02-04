@@ -9,6 +9,8 @@
 import UIKit
 import RealmSwift
 
+
+
  
 // When using delegates it is usually a good idea to use extension
  class CategoryViewController: SwipeTableViewController {
@@ -24,7 +26,7 @@ import RealmSwift
         super.viewDidLoad()
         loadCategories()
         
-        tableView.rowHeight = 80.0
+        
         
     }
 
@@ -34,20 +36,16 @@ import RealmSwift
         //return the number of categories if there are any and if not return 1
     }
     
-//    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-//        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell") as! SwipeTableViewCell
-//        cell.delegate = self
-//        return cell
-//    }
+
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! SwipeTableViewCell
         
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Categories Added Yet"
         // the cell is going to have a text label if we have categories and if not it will put in a cell "No Categories Added"
-        cell.delegate = self
+        
         
         return cell
         
@@ -93,10 +91,24 @@ import RealmSwift
         // we set our results container to look inside our realm and fetch all of the objects that belong to the category data type
         tableView.reloadData()
         // reloads table view with new data, it calls all the "Tableview DataSource Methods again"
-//
     }
     
+    //MARK: - Delete Data From Swipe
     
+    override func updateModel(at indexPath: IndexPath) {
+        if let categoryForDeletion = self.categoryArray?[indexPath.row]
+        {
+        do {
+            try self.realm.write {
+                self.realm.delete(categoryForDeletion)
+            }
+        } catch {
+            print("Error deleting category, \(error)")
+        }
+        }
+    }
+    
+    //MARK: - Add New Categoriess
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
         var textField = UITextField()
